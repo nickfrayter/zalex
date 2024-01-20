@@ -1,23 +1,37 @@
-import logo from './logo.svg';
+import React, { useState, useEffect } from 'react';
+import FormComponent from './components/FormComponent';
+import ListComponent from './components/ListComponent';
 import './App.css';
 
 function App() {
+  const [requests, setRequests] = useState([]); 
+  const [requestNo, setRequestNo] = useState(1);
+
+  useEffect(() => {
+    fetch('/request-list')
+      .then(response => response.json())
+      .then(data => {
+        const dataWithRequestNumbers = data.map((request, index) => ({
+          ...request,
+          request_no: request.request_no ? request.request_no : index + 1,
+        }));
+
+        setRequests(dataWithRequestNumbers);
+
+        setRequestNo(data.length + 1);
+      })
+      .catch(error => console.error('Error:', error));
+  }, []);
+
+  const handleNewRequest = (request) => {
+    setRequestNo(requestNo + 1); 
+    setRequests([request, ...requests]);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <FormComponent onNewRequest={handleNewRequest} requestNo={requestNo} />
+      <ListComponent requests={requests}/>
     </div>
   );
 }
